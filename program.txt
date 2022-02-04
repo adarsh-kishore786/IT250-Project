@@ -1,3 +1,7 @@
+-- Adarsh's ideas
+-- .ayta file
+-- it will compile it to a .c file, then gcc will compile
+
 -- Print stuff
 print "Hello";
 
