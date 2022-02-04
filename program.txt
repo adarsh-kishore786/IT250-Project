@@ -1,0 +1,32 @@
+-- Print stuff
+print "Hello";
+
+-- Operators, +-*/, ++
+-- Comment
+
+-- Storing value in var
+var/int a = 24;
+
+-- Print variables
+print "Hello %d", a;
+
+-- input value
+var/int b = Integer(input "Enter a number: ")
+
+-- if-else
+if (condition) {
+
+} else if {
+
+} 
+...
+} else {
+
+}
+
+-- while-loop
+var/int count = 0;
+while (condition) {
+	
+   count++;
+}
