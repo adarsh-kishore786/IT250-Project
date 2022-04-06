@@ -2,6 +2,7 @@
   #include <stdio.h>
   int yylex();
   void yyerror(const char*);
+  FILE* yyin;
 %}
 
 %token NUMBER NL SPACE
@@ -32,7 +33,10 @@ term: NUMBER
 space: SPACE { printf("here is some space\n"); }
 %%
 
-int main() {
+int main(int argc, char *argv[]) {
+  FILE *fp;
+  fp = fopen(argv[1], "r");
+  yyin = fp;
   yyparse();
   return 0;
 }

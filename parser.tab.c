@@ -71,8 +71,9 @@
   #include <stdio.h>
   int yylex();
   void yyerror(const char*);
+  FILE* yyin;
 
-#line 76 "parser.tab.c"
+#line 77 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -505,8 +506,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    13,    13,    13,    15,    16,    19,    20,    21,    22,
-      23,    24,    25,    28,    29,    30,    32
+       0,    14,    14,    14,    16,    17,    20,    21,    22,    23,
+      24,    25,    26,    29,    30,    31,    33
 };
 #endif
 
@@ -1309,67 +1310,67 @@ yyreduce:
   switch (yyn)
     {
   case 4:
-#line 15 "parser.y"
+#line 16 "parser.y"
         { printf("%d\n", yyvsp[0]); }
-#line 1315 "parser.tab.c"
+#line 1316 "parser.tab.c"
     break;
 
   case 6:
-#line 19 "parser.y"
+#line 20 "parser.y"
                     { yyval = yyvsp[-2] + yyvsp[0]; }
-#line 1321 "parser.tab.c"
+#line 1322 "parser.tab.c"
     break;
 
   case 7:
-#line 20 "parser.y"
+#line 21 "parser.y"
                   { yyval = yyvsp[-2] - yyvsp[0]; }
-#line 1327 "parser.tab.c"
+#line 1328 "parser.tab.c"
     break;
 
   case 8:
-#line 21 "parser.y"
+#line 22 "parser.y"
                   { yyval = yyvsp[-2] * yyvsp[0]; }
-#line 1333 "parser.tab.c"
+#line 1334 "parser.tab.c"
     break;
 
   case 9:
-#line 22 "parser.y"
+#line 23 "parser.y"
                   { yyval = yyvsp[-2] / yyvsp[0]; }
-#line 1339 "parser.tab.c"
+#line 1340 "parser.tab.c"
     break;
 
   case 10:
-#line 23 "parser.y"
+#line 24 "parser.y"
                   { yyval = yyvsp[-2] % yyvsp[0]; }
-#line 1345 "parser.tab.c"
+#line 1346 "parser.tab.c"
     break;
 
   case 11:
-#line 24 "parser.y"
+#line 25 "parser.y"
                  { yyval = yyvsp[-1]; }
-#line 1351 "parser.tab.c"
+#line 1352 "parser.tab.c"
     break;
 
   case 14:
-#line 29 "parser.y"
+#line 30 "parser.y"
              { yyval = -yyvsp[0]; }
-#line 1357 "parser.tab.c"
+#line 1358 "parser.tab.c"
     break;
 
   case 15:
-#line 30 "parser.y"
+#line 31 "parser.y"
              { yyval = yyvsp[0]; }
-#line 1363 "parser.tab.c"
+#line 1364 "parser.tab.c"
     break;
 
   case 16:
-#line 32 "parser.y"
+#line 33 "parser.y"
              { printf("here is some space\n"); }
-#line 1369 "parser.tab.c"
+#line 1370 "parser.tab.c"
     break;
 
 
-#line 1373 "parser.tab.c"
+#line 1374 "parser.tab.c"
 
       default: break;
     }
@@ -1601,10 +1602,13 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 33 "parser.y"
+#line 34 "parser.y"
 
 
-int main() {
+int main(int argc, char *argv[]) {
+  FILE *fp;
+  fp = fopen(argv[1], "r");
+  yyin = fp;
   yyparse();
   return 0;
 }
