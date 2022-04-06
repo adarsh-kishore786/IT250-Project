@@ -1,0 +1,4 @@
+lex -o tokenizer.yy.c tokenizer.l
+yacc -o parser.tab.c -d parser.y
+cc -o compiler tokenizer.yy.c parser.tab.c
+./compiler
