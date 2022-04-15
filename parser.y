@@ -2,16 +2,33 @@
   #include <stdio.h>
   int yylex();
   void yyerror(const char*);
-  FILE* yyin;
+  extern FILE* yyin;
 %}
 
+%union {
+    double dval;
+    int ival;
+    char *sval;
+}
+
 %token NUMBER NL SPACE
+%token PRINT STR
+
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
 
+%type <ival> expr term;
+
 %%
-program: program R NL | ;
+program: R NL program | stmt NL program | ;
+
+stmt: PRINT STR
+    {
+        printf("printf(%s);\n", $<sval>2);
+    }
+    |
+    ;
 
 R: expr { printf("%d\n", $1); }
   | space
@@ -26,7 +43,7 @@ expr: expr '+' expr { $$ = $1 + $3; }
   | term
   ;
 
-term: NUMBER
+term: NUMBER { $$ = $<ival>1; }
   | '-' expr { $$ = -$2; }
   | '+' expr { $$ = $2; }
 
