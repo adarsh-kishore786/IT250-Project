@@ -2,19 +2,26 @@
   #include <stdio.h>
   int yylex();
   void yyerror(const char*);
-  FILE* yyin;
-  char words[100];
+  extern FILE* yyin;
 %}
+
+%union {
+    int ival;
+    double dval;
+    char* sval;
+}
 
 %token DELIM
 %token START END
 %token PRINT
 %token TEXT NL
-%token NUMBER
+%token NUMBER STRING FLOAT
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
 %left '"'
+
+%type <ival> expr term
 
 %%
 
@@ -27,6 +34,10 @@ statements: line DELIM statements
   ;
 
 line: expr { printf("%d\n", $1); }
+  |
+  PRINT STRING {
+    printf("printf(%s);\n", $<sval>2);
+  }
   | ;
 
 expr: expr '+' expr { $$ = $1 + $3; }
@@ -38,7 +49,7 @@ expr: expr '+' expr { $$ = $1 + $3; }
   | term
   ;
 
-term: NUMBER
+term: NUMBER { $$ = $<ival>1; }
   | '-' expr { $$ = -$2; }
   | '+' expr { $$ = $2; }
 %%
