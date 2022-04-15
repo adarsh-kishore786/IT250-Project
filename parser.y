@@ -3,19 +3,31 @@
   int yylex();
   void yyerror(const char*);
   FILE* yyin;
+  char words[100];
 %}
 
-%token NUMBER NL SPACE
+%token DELIM
+%token START END
+%token PRINT
+%token TEXT NL
+%token NUMBER
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
+%left '"'
 
 %%
-program: program R NL | ;
 
-R: expr { printf("%d\n", $1); }
-  | space
+R: START statements END { printf("Program compiled successfully\n"); }
+  |
   ;
+
+statements: line DELIM statements
+  |
+  ;
+
+line: expr { printf("%d\n", $1); }
+  | ;
 
 expr: expr '+' expr { $$ = $1 + $3; }
   | expr '-' expr { $$ = $1 - $3; }
@@ -29,8 +41,6 @@ expr: expr '+' expr { $$ = $1 + $3; }
 term: NUMBER
   | '-' expr { $$ = -$2; }
   | '+' expr { $$ = $2; }
-
-space: SPACE { printf("here is some space\n"); }
 %%
 
 int main(int argc, char *argv[]) {
