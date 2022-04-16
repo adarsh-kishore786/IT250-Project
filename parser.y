@@ -23,10 +23,7 @@
 %%
 program: R NL program | stmt NL program | ;
 
-stmt: PRINT STR
-    {
-        printf("printf(%s);\n", $<sval>2);
-    }
+stmt: PRINT STR { printf("printf(%s);\n", $<sval>2);}
     |
     ;
 

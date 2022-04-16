@@ -13,12 +13,12 @@
 
 \"[a-zA-Z0-9]*\" {
     yylval.sval = yytext;
-    return STR; 
+    return STR;
 }
 
 [\+\-\*/%()] { return *yytext; }
 
-"say" { return PRINT; }
+"SAY" { return PRINT; }
 
 \n return NL;
 [ \t] ;
