@@ -5,6 +5,15 @@
   void yyerror(const char*);
   extern FILE* yyin;
   char vname[128];
+
+  int eqnCount = 0;
+
+  struct oprCode
+  {
+    int t1, t2;
+    int v1, v2;
+    int op;
+  };
 %}
 
 %union {
@@ -24,8 +33,7 @@
 %left '"'
 %left '='
 
-%type <ival> expr term
-%type <sval> var
+%type <ival> term eqn
 
 %%
 
@@ -38,32 +46,31 @@ statements: line DELIM statements
   ;
 
 line:
-  expr { printf("%d\n", $1); }
+  eqn { printf("%d\n", $1); }
   |
   PRINT STRING {
     printf("printf(%s);\n", $<sval>2);
   }
   |
-  var '=' expr {
-    printf("%s = %d\n", $1, $3);
+  VARIABLE '=' eqn {
+    printf("%s = t%d\n", $<sval>1, $3);
   }
   ;
 
-expr: expr '+' expr { $$ = $1 + $3; }
-  | expr '-' expr { $$ = $1 - $3; }
-  | expr '*' expr { $$ = $1 * $3; }
-  | expr '/' expr { $$ = $1 / $3; }
-  | expr '%' expr { $$ = $1 % $3; }
-  | '(' expr ')' { $$ = $2; }
-  | term
+eqn: eqn '+' eqn { $$ = eqnCount++; printf("t%d = t%d + t%d\n", $$, $1, $3); }
+  | eqn '-' eqn { $$ = eqnCount++; printf("t%d = t%d - t%d\n", $$, $1, $3); }
+  | eqn '*' eqn { $$ = eqnCount++; printf("t%d = t%d * t%d\n", $$, $1, $3); }
+  | eqn '/' eqn { $$ = eqnCount++; printf("t%d = t%d / t%d\n", $$, $1, $3); }
+  | eqn '%' eqn { $$ = eqnCount++; printf("t%d = t%d % t%d\n", $$, $1, $3); }
+  | '(' eqn ')' { $$ = $2; }
+  | VARIABLE { $$ = eqnCount++; printf("t%d = %s\n", $$, $<sval>1); }
+  | term { $$ = eqnCount++; printf("t%d = %d\n", $$, $1); }
+  | '-' eqn { $$ = eqnCount++; printf("t%d = - t%d\n", $$, $2); }
+  | '+' eqn { $$ = $2; }
   ;
 
 term: NUMBER { $$ = $<ival>1; }
-  | '-' expr { $$ = -$2; }
-  | '+' expr { $$ = $2; }
   ;
-
-var: VARIABLE { strcpy(vname, $<sval>1); $$ = vname; }
 
 %%
 

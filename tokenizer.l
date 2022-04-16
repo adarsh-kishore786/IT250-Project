@@ -12,7 +12,7 @@ SAY return PRINT;
 
 [0-9]+ { yylval.ival = atoi(yytext); return NUMBER; }
 \"[a-zA-Z0-9]*\" { yylval.sval = yytext; return STRING; }
-[a-zA-Z][a-zA-Z0-9]* { yylval.sval = yytext; return VARIABLE; }
+[a-zA-Z][a-zA-Z0-9_]* { yylval.sval = (char *)malloc(yyleng+2); strcpy(yylval.sval, yytext); return VARIABLE; }
 [\+\-\*/%()"] { return *yytext; }
 [ \n\t]
 "(.+)" return *yytext;
