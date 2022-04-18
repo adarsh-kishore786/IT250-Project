@@ -53,9 +53,18 @@ extern int yydebug;
     START = 259,
     END = 260,
     PRINT = 261,
-    TEXT = 262,
-    NL = 263,
-    NUMBER = 264
+    IF = 262,
+    ELSE = 263,
+    THEN = 264,
+    ELIF = 265,
+    EIF = 266,
+    WHILE = 267,
+    DO = 268,
+    EWHILE = 269,
+    TEXT = 270,
+    NL = 271,
+    NUMBER = 272,
+    EQUALITY = 273
   };
 #endif
 /* Tokens.  */
@@ -63,9 +72,18 @@ extern int yydebug;
 #define START 259
 #define END 260
 #define PRINT 261
-#define TEXT 262
-#define NL 263
-#define NUMBER 264
+#define IF 262
+#define ELSE 263
+#define THEN 264
+#define ELIF 265
+#define EIF 266
+#define WHILE 267
+#define DO 268
+#define EWHILE 269
+#define TEXT 270
+#define NL 271
+#define NUMBER 272
+#define EQUALITY 273
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

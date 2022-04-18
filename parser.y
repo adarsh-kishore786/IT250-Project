@@ -4,17 +4,19 @@
   void yyerror(const char*);
   FILE* yyin;
   char words[100];
+  int condition;
 %}
 
 %token DELIM
 %token START END
-%token PRINT
+%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE
 %token TEXT NL
 %token NUMBER
+%token EQUALITY
+%nonassoc '<' '>'
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
-%left '"'
 
 %%
 
@@ -26,8 +28,15 @@ statements: line DELIM statements
   |
   ;
 
-line: expr { printf("%d\n", $1); }
+line: expr
+  | IF '(' condition ')' THEN statements EIF { condition = $3; }
+  | WHILE '(' condition ')' DO statements EWHILE { condition = $3; }
   | ;
+
+condition: expr EQUALITY expr { $$ = $1 == $3; }
+  | expr '<' expr { $$ = $1 < $3; }
+  | expr '>' expr { $$ = $1 > $3; }
+  ;
 
 expr: expr '+' expr { $$ = $1 + $3; }
   | expr '-' expr { $$ = $1 - $3; }
