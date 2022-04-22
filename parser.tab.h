@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,8 +31,9 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
 
 #ifndef YY_YY_PARSER_TAB_H_INCLUDED
 # define YY_YY_PARSER_TAB_H_INCLUDED
@@ -44,46 +45,35 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    DELIM = 258,
-    START = 259,
-    END = 260,
-    PRINT = 261,
-    IF = 262,
-    ELSE = 263,
-    THEN = 264,
-    ELIF = 265,
-    EIF = 266,
-    WHILE = 267,
-    DO = 268,
-    EWHILE = 269,
-    TEXT = 270,
-    NL = 271,
-    NUMBER = 272,
-    EQUALITY = 273
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    DELIM = 258,                   /* DELIM  */
+    START = 259,                   /* START  */
+    END = 260,                     /* END  */
+    PRINT = 261,                   /* PRINT  */
+    IF = 262,                      /* IF  */
+    ELSE = 263,                    /* ELSE  */
+    THEN = 264,                    /* THEN  */
+    ELIF = 265,                    /* ELIF  */
+    EIF = 266,                     /* EIF  */
+    WHILE = 267,                   /* WHILE  */
+    DO = 268,                      /* DO  */
+    EWHILE = 269,                  /* EWHILE  */
+    TEXT = 270,                    /* TEXT  */
+    NL = 271,                      /* NL  */
+    NUMBER = 272,                  /* NUMBER  */
+    ID = 273,                      /* ID  */
+    EQUALITY = 274                 /* EQUALITY  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
-/* Tokens.  */
-#define DELIM 258
-#define START 259
-#define END 260
-#define PRINT 261
-#define IF 262
-#define ELSE 263
-#define THEN 264
-#define ELIF 265
-#define EIF 266
-#define WHILE 267
-#define DO 268
-#define EWHILE 269
-#define TEXT 270
-#define NL 271
-#define NUMBER 272
-#define EQUALITY 273
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -95,6 +85,8 @@ typedef int YYSTYPE;
 
 extern YYSTYPE yylval;
 
+
 int yyparse (void);
+
 
 #endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
