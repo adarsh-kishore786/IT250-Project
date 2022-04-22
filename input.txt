@@ -1,6 +1,9 @@
 START
-    x == 1
-    2 * 3;
-    2 * 3;
-    2 * 3;
+    WHILE (a == b + 5) DO
+        WHILE (c == d) DO
+            WHILE (c == d) DO
+            EWHILE;
+        EWHILE;
+        
+    EWHILE;
 END
