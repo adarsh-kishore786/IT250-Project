@@ -1,9 +1,9 @@
 START
-    WHILE (a == b + 5) DO
-        WHILE (c == d) DO
-            WHILE (c == d) DO
-            EWHILE;
-        EWHILE;
-        
+    x = 10;
+    WHILE(x < 10) DO
+        IF (y == 2) THEN
+            y = 5;
+        EIF;
+        x = x - 1;
     EWHILE;
 END

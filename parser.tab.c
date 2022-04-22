@@ -93,7 +93,7 @@
   etype stack[100];
   int top = -1;
 
-  int temp = 0, loop = 1;
+  int temp = 0, loop = 1, decision = 1;
 
   char indents[100] = {0};
   int ident = 0;
@@ -103,13 +103,14 @@
   etype pop();
   etype genBinary();
   etype genUnary();
+  void genAssign();
   void genCond();
   void genWhile();
   void genEWhile();
-  void genAssign();
+  void genIf();
+  void genEIf();
 
-
-#line 113 "parser.tab.c"
+#line 114 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -574,11 +575,11 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    56,    56,    57,    60,    61,    62,    65,    66,    66,
-      67,    67,    68,    68,    71,    72,    72,    73,    73,    74,
-      74,    75,    75,    76,    76,    80,    80,    81,    81,    82,
-      82,    83,    83,    84,    84,    85,    86,    89,    90,    91,
-      92
+       0,    57,    57,    58,    61,    62,    63,    66,    67,    67,
+      68,    68,    69,    69,    72,    73,    73,    74,    74,    75,
+      75,    76,    76,    77,    77,    81,    81,    82,    82,    83,
+      83,    84,    84,    85,    85,    86,    87,    90,    91,    92,
+      93
 };
 #endif
 
@@ -1191,211 +1192,211 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* R: START statements END  */
-#line 56 "parser.y"
+#line 57 "parser.y"
                         { printf("\nProgram compiled successfully\n"); }
-#line 1197 "parser.tab.c"
+#line 1198 "parser.tab.c"
     break;
 
   case 5: /* statements: error DELIM statements  */
-#line 61 "parser.y"
+#line 62 "parser.y"
                            { yyerrok; }
-#line 1203 "parser.tab.c"
+#line 1204 "parser.tab.c"
     break;
 
   case 8: /* $@1: %empty  */
-#line 66 "parser.y"
-                              {  }
-#line 1209 "parser.tab.c"
+#line 67 "parser.y"
+                              { genIf(); }
+#line 1210 "parser.tab.c"
     break;
 
   case 9: /* line: IF '(' condition ')' THEN $@1 statements EIF  */
-#line 66 "parser.y"
-                                                  {  }
-#line 1215 "parser.tab.c"
+#line 67 "parser.y"
+                                                          { genEIf(); }
+#line 1216 "parser.tab.c"
     break;
 
   case 10: /* $@2: %empty  */
-#line 67 "parser.y"
+#line 68 "parser.y"
                                { genWhile(); }
-#line 1221 "parser.tab.c"
+#line 1222 "parser.tab.c"
     break;
 
   case 11: /* line: WHILE '(' condition ')' DO $@2 statements EWHILE  */
-#line 67 "parser.y"
+#line 68 "parser.y"
                                                                  { genEWhile(); }
-#line 1227 "parser.tab.c"
+#line 1228 "parser.tab.c"
     break;
 
   case 12: /* $@3: %empty  */
-#line 68 "parser.y"
+#line 69 "parser.y"
        { cpush(VAR_T); }
-#line 1233 "parser.tab.c"
+#line 1234 "parser.tab.c"
     break;
 
   case 13: /* line: ID $@3 '=' expr  */
-#line 68 "parser.y"
+#line 69 "parser.y"
                                   { genAssign(); }
-#line 1239 "parser.tab.c"
+#line 1240 "parser.tab.c"
     break;
 
   case 14: /* condition: expr  */
-#line 71 "parser.y"
+#line 72 "parser.y"
                 {  }
-#line 1245 "parser.tab.c"
+#line 1246 "parser.tab.c"
     break;
 
   case 15: /* $@4: %empty  */
-#line 72 "parser.y"
+#line 73 "parser.y"
                   { etype x = { OPR_T, "==" }; push(x); }
-#line 1251 "parser.tab.c"
+#line 1252 "parser.tab.c"
     break;
 
   case 16: /* condition: expr EQUALITY $@4 expr  */
-#line 72 "parser.y"
+#line 73 "parser.y"
                                                                { genCond(); }
-#line 1257 "parser.tab.c"
+#line 1258 "parser.tab.c"
     break;
 
   case 17: /* $@5: %empty  */
-#line 73 "parser.y"
+#line 74 "parser.y"
              { etype x = { OPR_T, "<" }; push(x); }
-#line 1263 "parser.tab.c"
+#line 1264 "parser.tab.c"
     break;
 
   case 18: /* condition: expr '<' $@5 expr  */
-#line 73 "parser.y"
+#line 74 "parser.y"
                                                          { genCond(); }
-#line 1269 "parser.tab.c"
+#line 1270 "parser.tab.c"
     break;
 
   case 19: /* $@6: %empty  */
-#line 74 "parser.y"
+#line 75 "parser.y"
              { etype x = { OPR_T, ">" }; push(x); }
-#line 1275 "parser.tab.c"
+#line 1276 "parser.tab.c"
     break;
 
   case 20: /* condition: expr '>' $@6 expr  */
-#line 74 "parser.y"
+#line 75 "parser.y"
                                                          { genCond(); }
-#line 1281 "parser.tab.c"
+#line 1282 "parser.tab.c"
     break;
 
   case 21: /* $@7: %empty  */
-#line 75 "parser.y"
+#line 76 "parser.y"
                  { etype x = { OPR_T, "<=" }; push(x); }
-#line 1287 "parser.tab.c"
+#line 1288 "parser.tab.c"
     break;
 
   case 22: /* condition: expr '<' '=' $@7 expr  */
-#line 75 "parser.y"
+#line 76 "parser.y"
                                                               { genCond(); }
-#line 1293 "parser.tab.c"
+#line 1294 "parser.tab.c"
     break;
 
   case 23: /* $@8: %empty  */
-#line 76 "parser.y"
+#line 77 "parser.y"
                  { etype x = { OPR_T, ">=" }; push(x); }
-#line 1299 "parser.tab.c"
+#line 1300 "parser.tab.c"
     break;
 
   case 24: /* condition: expr '>' '=' $@8 expr  */
-#line 76 "parser.y"
+#line 77 "parser.y"
                                                               { genCond(); }
-#line 1305 "parser.tab.c"
+#line 1306 "parser.tab.c"
     break;
 
   case 25: /* $@9: %empty  */
-#line 80 "parser.y"
+#line 81 "parser.y"
              { etype x = {OPR_T, "+"}; push(x); }
-#line 1311 "parser.tab.c"
+#line 1312 "parser.tab.c"
     break;
 
   case 26: /* expr: expr '+' $@9 expr  */
-#line 80 "parser.y"
+#line 81 "parser.y"
                                                        { genBinary(); }
-#line 1317 "parser.tab.c"
+#line 1318 "parser.tab.c"
     break;
 
   case 27: /* $@10: %empty  */
-#line 81 "parser.y"
+#line 82 "parser.y"
              { etype x = {OPR_T, "-"}; push(x); }
-#line 1323 "parser.tab.c"
+#line 1324 "parser.tab.c"
     break;
 
   case 28: /* expr: expr '-' $@10 expr  */
-#line 81 "parser.y"
+#line 82 "parser.y"
                                                        { genBinary(); }
-#line 1329 "parser.tab.c"
+#line 1330 "parser.tab.c"
     break;
 
   case 29: /* $@11: %empty  */
-#line 82 "parser.y"
+#line 83 "parser.y"
              { etype x = {OPR_T, "*"}; push(x); }
-#line 1335 "parser.tab.c"
+#line 1336 "parser.tab.c"
     break;
 
   case 30: /* expr: expr '*' $@11 expr  */
-#line 82 "parser.y"
+#line 83 "parser.y"
                                                        { genBinary(); }
-#line 1341 "parser.tab.c"
+#line 1342 "parser.tab.c"
     break;
 
   case 31: /* $@12: %empty  */
-#line 83 "parser.y"
+#line 84 "parser.y"
              { etype x = {OPR_T, "/"}; push(x); }
-#line 1347 "parser.tab.c"
+#line 1348 "parser.tab.c"
     break;
 
   case 32: /* expr: expr '/' $@12 expr  */
-#line 83 "parser.y"
+#line 84 "parser.y"
                                                        { genBinary(); }
-#line 1353 "parser.tab.c"
+#line 1354 "parser.tab.c"
     break;
 
   case 33: /* $@13: %empty  */
-#line 84 "parser.y"
+#line 85 "parser.y"
              { etype x = {OPR_T, "%"}; push(x); }
-#line 1359 "parser.tab.c"
+#line 1360 "parser.tab.c"
     break;
 
   case 34: /* expr: expr '%' $@13 expr  */
-#line 84 "parser.y"
+#line 85 "parser.y"
                                                        { genBinary(); }
-#line 1365 "parser.tab.c"
+#line 1366 "parser.tab.c"
     break;
 
   case 35: /* expr: '(' expr ')'  */
-#line 85 "parser.y"
+#line 86 "parser.y"
                  {  }
-#line 1371 "parser.tab.c"
+#line 1372 "parser.tab.c"
     break;
 
   case 37: /* term: NUMBER  */
-#line 89 "parser.y"
+#line 90 "parser.y"
              { cpush(NUM_T); }
-#line 1377 "parser.tab.c"
+#line 1378 "parser.tab.c"
     break;
 
   case 38: /* term: ID  */
-#line 90 "parser.y"
+#line 91 "parser.y"
        { cpush(VAR_T); }
-#line 1383 "parser.tab.c"
+#line 1384 "parser.tab.c"
     break;
 
   case 39: /* term: '-' expr  */
-#line 91 "parser.y"
+#line 92 "parser.y"
              { etype x = {OPR_T, "-"}; push(x); genUnary(); }
-#line 1389 "parser.tab.c"
+#line 1390 "parser.tab.c"
     break;
 
   case 40: /* term: '+' expr  */
-#line 92 "parser.y"
+#line 93 "parser.y"
              { etype x = {OPR_T, "+"}; push(x); genUnary(); }
-#line 1395 "parser.tab.c"
+#line 1396 "parser.tab.c"
     break;
 
 
-#line 1399 "parser.tab.c"
+#line 1400 "parser.tab.c"
 
       default: break;
     }
@@ -1588,7 +1589,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 95 "parser.y"
+#line 96 "parser.y"
 
 
 void cpush(enum dattype T) {
@@ -1636,7 +1637,7 @@ void genWhile() {
   indents[ident] = '\t';
   indents[ident+1] = 0;
   ident++;
-  printf("%s IF t%d JMP TO End_L%d\n", indents, temp, loop);
+  printf("%s IF t%d JMP TO End_L_%d\n", indents, temp, loop);
   loop++;
   temp++;
 }
@@ -1646,8 +1647,25 @@ void genEWhile() {
   printf("%s JMP TO L_%d\n", indents, loop);
   indents[ident-1] = 0;
   ident--;
-  printf("%s End_L%d:\n", indents, loop);
-  
+  printf("%s End_L_%d:\n", indents, loop);
+}
+
+void genIf() {
+  etype a = pop();
+  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
+  printf("%s IF t%d JMP TO End_I_%d:\n", indents, temp, decision);
+  indents[ident] = '\t';
+  indents[ident+1] = 0;
+  ident++;
+  decision++;
+  temp++;
+}
+
+void genEIf() {
+  --decision;
+  indents[ident-1] = 0;
+  ident--;
+  printf("%s End_I_%d:\n", indents, decision);
 }
 
 void genCond() {

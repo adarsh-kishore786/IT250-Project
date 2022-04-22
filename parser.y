@@ -23,7 +23,7 @@
   etype stack[100];
   int top = -1;
 
-  int temp = 0, loop = 1;
+  int temp = 0, loop = 1, decision = 1;
 
   char indents[100] = {0};
   int ident = 0;
@@ -33,11 +33,12 @@
   etype pop();
   etype genBinary();
   etype genUnary();
+  void genAssign();
   void genCond();
   void genWhile();
   void genEWhile();
-  void genAssign();
-
+  void genIf();
+  void genEIf();
 %}
 
 %token DELIM
@@ -63,7 +64,7 @@ statements: line DELIM statements
   ;
 
 line: expr
-  | IF '(' condition ')' THEN {  } statements EIF {  }
+  | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
   ;
@@ -139,7 +140,7 @@ void genWhile() {
   indents[ident] = '\t';
   indents[ident+1] = 0;
   ident++;
-  printf("%s IF t%d JMP TO End_L%d\n", indents, temp, loop);
+  printf("%s IF t%d JMP TO End_L_%d\n", indents, temp, loop);
   loop++;
   temp++;
 }
@@ -149,8 +150,25 @@ void genEWhile() {
   printf("%s JMP TO L_%d\n", indents, loop);
   indents[ident-1] = 0;
   ident--;
-  printf("%s End_L%d:\n", indents, loop);
-  
+  printf("%s End_L_%d:\n", indents, loop);
+}
+
+void genIf() {
+  etype a = pop();
+  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
+  printf("%s IF t%d JMP TO End_I_%d:\n", indents, temp, decision);
+  indents[ident] = '\t';
+  indents[ident+1] = 0;
+  ident++;
+  decision++;
+  temp++;
+}
+
+void genEIf() {
+  --decision;
+  indents[ident-1] = 0;
+  ident--;
+  printf("%s End_I_%d:\n", indents, decision);
 }
 
 void genCond() {
