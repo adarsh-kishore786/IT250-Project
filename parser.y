@@ -58,6 +58,7 @@ R: START statements END { printf("\nProgram compiled successfully\n"); }
   ;
 
 statements: line DELIM statements
+  | error DELIM statements { yyerrok; }
   |
   ;
 
@@ -65,7 +66,6 @@ line: expr
   | IF '(' condition ')' THEN {  } statements EIF {  }
   | WHILE '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
-  | error { yyerrok; yyclearin; }
   ;
 
 condition: expr {  }
