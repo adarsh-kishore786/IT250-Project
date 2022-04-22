@@ -1,0 +1,6 @@
+input.txt
+compiler
+compiler.exe
+parser.tab.c
+parser.tab.h
+tokenizer.yy.c
