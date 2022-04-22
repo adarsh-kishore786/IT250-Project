@@ -1,5 +1,6 @@
 START
-    WHILE ( a ) DO
-        2 + 2;
-    EWHILE;
+    x == 1
+    2 * 3;
+    2 * 3;
+    2 * 3;
 END

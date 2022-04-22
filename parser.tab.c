@@ -83,7 +83,7 @@
   int condition;
 
   enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T };
-  char disptype[] = { ' ', ' ', 't', ' '};
+  char disptype[] = { 0, 0, 't', 0 };
 
   struct elem {
     enum dattype type;
@@ -93,21 +93,23 @@
   etype stack[100];
   int top = -1;
 
-  int loopStack[100];
-  int ltop = -1;
-
   int temp = 0, loop = 1;
+
+  char indents[100] = {0};
+  int ident = 0;
 
   void push(etype);
   void cpush(enum dattype);
   etype pop();
   etype genBinary();
   etype genUnary();
+  void genCond();
   void genWhile();
   void genEWhile();
+  void genAssign();
 
 
-#line 111 "parser.tab.c"
+#line 113 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -157,27 +159,34 @@ enum yysymbol_kind_t
   YYSYMBOL_EQUALITY = 19,                  /* EQUALITY  */
   YYSYMBOL_20_ = 20,                       /* '<'  */
   YYSYMBOL_21_ = 21,                       /* '>'  */
-  YYSYMBOL_22_ = 22,                       /* '+'  */
-  YYSYMBOL_23_ = 23,                       /* '-'  */
-  YYSYMBOL_24_ = 24,                       /* '*'  */
-  YYSYMBOL_25_ = 25,                       /* '/'  */
-  YYSYMBOL_26_ = 26,                       /* '%'  */
-  YYSYMBOL_27_ = 27,                       /* '('  */
-  YYSYMBOL_28_ = 28,                       /* ')'  */
-  YYSYMBOL_29_ = 29,                       /* '='  */
+  YYSYMBOL_22_ = 22,                       /* '='  */
+  YYSYMBOL_23_ = 23,                       /* '+'  */
+  YYSYMBOL_24_ = 24,                       /* '-'  */
+  YYSYMBOL_25_ = 25,                       /* '*'  */
+  YYSYMBOL_26_ = 26,                       /* '/'  */
+  YYSYMBOL_27_ = 27,                       /* '%'  */
+  YYSYMBOL_28_ = 28,                       /* '('  */
+  YYSYMBOL_29_ = 29,                       /* ')'  */
   YYSYMBOL_YYACCEPT = 30,                  /* $accept  */
   YYSYMBOL_R = 31,                         /* R  */
   YYSYMBOL_statements = 32,                /* statements  */
   YYSYMBOL_line = 33,                      /* line  */
   YYSYMBOL_34_1 = 34,                      /* $@1  */
-  YYSYMBOL_condition = 35,                 /* condition  */
-  YYSYMBOL_expr = 36,                      /* expr  */
-  YYSYMBOL_37_2 = 37,                      /* $@2  */
-  YYSYMBOL_38_3 = 38,                      /* $@3  */
-  YYSYMBOL_39_4 = 39,                      /* $@4  */
-  YYSYMBOL_40_5 = 40,                      /* $@5  */
-  YYSYMBOL_41_6 = 41,                      /* $@6  */
-  YYSYMBOL_term = 42                       /* term  */
+  YYSYMBOL_35_2 = 35,                      /* $@2  */
+  YYSYMBOL_36_3 = 36,                      /* $@3  */
+  YYSYMBOL_condition = 37,                 /* condition  */
+  YYSYMBOL_38_4 = 38,                      /* $@4  */
+  YYSYMBOL_39_5 = 39,                      /* $@5  */
+  YYSYMBOL_40_6 = 40,                      /* $@6  */
+  YYSYMBOL_41_7 = 41,                      /* $@7  */
+  YYSYMBOL_42_8 = 42,                      /* $@8  */
+  YYSYMBOL_expr = 43,                      /* expr  */
+  YYSYMBOL_44_9 = 44,                      /* $@9  */
+  YYSYMBOL_45_10 = 45,                     /* $@10  */
+  YYSYMBOL_46_11 = 46,                     /* $@11  */
+  YYSYMBOL_47_12 = 47,                     /* $@12  */
+  YYSYMBOL_48_13 = 48,                     /* $@13  */
+  YYSYMBOL_term = 49                       /* term  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -503,18 +512,18 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  14
+#define YYFINAL  15
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   64
+#define YYLAST   106
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  30
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  13
+#define YYNNTS  20
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  30
+#define YYNRULES  40
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  60
+#define YYNSTATES  72
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   274
@@ -534,10 +543,10 @@ static const yytype_int8 yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,    26,     2,     2,
-      27,    28,    24,    22,     2,    23,     2,    25,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,    27,     2,     2,
+      28,    29,    25,    23,     2,    24,     2,    26,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      20,    29,    21,     2,     2,     2,     2,     2,     2,     2,
+      20,    22,    21,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -565,10 +574,11 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    54,    54,    55,    58,    59,    62,    63,    64,    64,
-      65,    68,    69,    70,    71,    75,    75,    76,    76,    77,
-      77,    78,    78,    79,    79,    80,    81,    84,    85,    86,
-      87
+       0,    56,    56,    57,    60,    61,    64,    65,    65,    66,
+      66,    67,    67,    68,    71,    72,    72,    73,    73,    74,
+      74,    75,    75,    76,    76,    80,    80,    81,    81,    82,
+      82,    83,    83,    84,    84,    85,    86,    89,    90,    91,
+      92
 };
 #endif
 
@@ -586,10 +596,11 @@ static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "DELIM", "START",
   "END", "PRINT", "IF", "ELSE", "THEN", "ELIF", "EIF", "WHILE", "DO",
-  "EWHILE", "TEXT", "NL", "NUMBER", "ID", "EQUALITY", "'<'", "'>'", "'+'",
-  "'-'", "'*'", "'/'", "'%'", "'('", "')'", "'='", "$accept", "R",
-  "statements", "line", "$@1", "condition", "expr", "$@2", "$@3", "$@4",
-  "$@5", "$@6", "term", YY_NULLPTR
+  "EWHILE", "TEXT", "NL", "NUMBER", "ID", "EQUALITY", "'<'", "'>'", "'='",
+  "'+'", "'-'", "'*'", "'/'", "'%'", "'('", "')'", "$accept", "R",
+  "statements", "line", "$@1", "$@2", "$@3", "condition", "$@4", "$@5",
+  "$@6", "$@7", "$@8", "expr", "$@9", "$@10", "$@11", "$@12", "$@13",
+  "term", YY_NULLPTR
 };
 
 static const char *
@@ -604,7 +615,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-1)
+#define YYTABLE_NINF (-12)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -613,12 +624,14 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       7,     0,    13,   -11,    -6,   -22,    -4,    -3,    -3,    -3,
-      32,    23,    33,   -22,   -22,    -3,    -3,    -3,   -22,   -21,
-     -21,    26,   -22,     0,   -22,   -22,   -22,   -22,   -22,    10,
-      21,    25,    33,   -22,   -22,    -3,    -3,    -3,    -3,    -3,
-      51,    -3,    -3,    -3,    48,   -21,   -21,   -22,   -22,   -22,
-       0,    33,    33,    33,   -22,    52,     0,   -22,    50,   -22
+       2,    53,     7,   -22,    -2,    -1,   -22,    18,   -13,   -13,
+     -13,    19,    38,    79,   -22,   -22,   -13,   -13,    20,   -22,
+      -4,    -4,    10,   -22,    45,   -22,   -22,   -22,   -22,   -22,
+      14,    -7,    22,   -13,   -22,   -22,   -13,   -13,   -13,   -13,
+     -13,    39,   -22,    42,    44,    48,    79,    -4,    -4,   -22,
+     -22,   -22,   -22,   -13,   -22,   -13,   -22,   -13,   -22,    71,
+      79,   -13,    79,   -13,    79,    73,    56,    79,    79,    61,
+     -22,   -22
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -626,26 +639,28 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       3,     5,     0,     0,     0,    27,    28,     0,     0,     0,
-       0,     0,     6,    26,     1,     0,     0,     0,    28,    30,
-      29,     0,     2,     5,    15,    17,    19,    21,    23,     0,
-      11,     0,    10,    25,     4,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    16,    18,    20,    22,    24,
-       5,    12,    13,    14,     8,     0,     5,     7,     0,     9
+       3,     0,     0,    13,     0,     0,    37,    38,     0,     0,
+       0,     0,     0,     6,    36,     1,     0,     0,     0,    38,
+      40,    39,     0,     2,     0,    25,    27,    29,    31,    33,
+       0,    14,     0,     0,    35,     4,     0,     0,     0,     0,
+       0,     0,    15,    17,    19,     0,    12,    26,    28,    30,
+      32,    34,     7,     0,    21,     0,    23,     0,     9,     0,
+      16,     0,    18,     0,    20,     0,     0,    22,    24,     0,
+       8,    10
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -22,   -22,   -17,   -22,   -22,    46,    -7,   -22,   -22,   -22,
-     -22,   -22,   -22
+     -22,   -22,   -21,   -22,   -22,   -22,   -22,    62,   -22,   -22,
+     -22,   -22,   -22,    -8,   -22,   -22,   -22,   -22,   -22,   -22
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,    10,    11,    56,    29,    12,    35,    36,    37,
-      38,    39,    13
+       0,     2,    11,    12,    59,    65,    18,    30,    53,    55,
+      57,    61,    63,    13,    36,    37,    38,    39,    40,    14
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -653,52 +668,64 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      19,    20,    21,    26,    27,    28,    34,     3,    30,    30,
-      32,     1,     4,    14,     5,    18,    15,     5,     6,     7,
-       8,    16,     7,     8,     9,    17,    23,     9,    45,    46,
-      47,    48,    49,    55,    51,    52,    53,    22,    40,    58,
-      41,    42,    43,    24,    25,    26,    27,    28,    24,    25,
-      26,    27,    28,    44,    33,    24,    25,    26,    27,    28,
-      50,    54,    31,    57,    59
+      20,    21,    22,    35,     6,    19,     1,    15,    31,    31,
+       8,     9,    42,    43,    44,    10,    25,    26,    27,    28,
+      29,    27,    28,    29,    23,    46,    16,    17,    47,    48,
+      49,    50,    51,    25,    26,    27,    28,    29,    66,    34,
+     -11,    24,    33,    41,    69,    60,     3,    62,    52,    64,
+      -5,    45,     4,    67,     3,    68,    -5,     5,    -5,    -5,
+       4,    58,     6,     7,    54,     5,    56,    70,     8,     9,
+       6,     7,     3,    10,     3,    71,     8,     9,     4,    32,
+       4,    10,    -5,     5,     0,     5,     0,    -5,     6,     7,
+       6,     7,     0,     0,     8,     9,     8,     9,     0,    10,
+       0,    10,    25,    26,    27,    28,    29
 };
 
 static const yytype_int8 yycheck[] =
 {
-       7,     8,     9,    24,    25,    26,    23,     7,    15,    16,
-      17,     4,    12,     0,    17,    18,    27,    17,    18,    22,
-      23,    27,    22,    23,    27,    29,     3,    27,    35,    36,
-      37,    38,    39,    50,    41,    42,    43,     5,    28,    56,
-      19,    20,    21,    22,    23,    24,    25,    26,    22,    23,
-      24,    25,    26,    28,    28,    22,    23,    24,    25,    26,
-       9,    13,    16,    11,    14
+       8,     9,    10,    24,    17,    18,     4,     0,    16,    17,
+      23,    24,    19,    20,    21,    28,    23,    24,    25,    26,
+      27,    25,    26,    27,     5,    33,    28,    28,    36,    37,
+      38,    39,    40,    23,    24,    25,    26,    27,    59,    29,
+      22,     3,    22,    29,    65,    53,     1,    55,     9,    57,
+       5,    29,     7,    61,     1,    63,    11,    12,     5,    14,
+       7,    13,    17,    18,    22,    12,    22,    11,    23,    24,
+      17,    18,     1,    28,     1,    14,    23,    24,     7,    17,
+       7,    28,    11,    12,    -1,    12,    -1,    14,    17,    18,
+      17,    18,    -1,    -1,    23,    24,    23,    24,    -1,    28,
+      -1,    28,    23,    24,    25,    26,    27
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     4,    31,     7,    12,    17,    18,    22,    23,    27,
-      32,    33,    36,    42,     0,    27,    27,    29,    18,    36,
-      36,    36,     5,     3,    22,    23,    24,    25,    26,    35,
-      36,    35,    36,    28,    32,    37,    38,    39,    40,    41,
-      28,    19,    20,    21,    28,    36,    36,    36,    36,    36,
-       9,    36,    36,    36,    13,    32,    34,    11,    32,    14
+       0,     4,    31,     1,     7,    12,    17,    18,    23,    24,
+      28,    32,    33,    43,    49,     0,    28,    28,    36,    18,
+      43,    43,    43,     5,     3,    23,    24,    25,    26,    27,
+      37,    43,    37,    22,    29,    32,    44,    45,    46,    47,
+      48,    29,    19,    20,    21,    29,    43,    43,    43,    43,
+      43,    43,     9,    38,    22,    39,    22,    40,    13,    34,
+      43,    41,    43,    42,    43,    35,    32,    43,    43,    32,
+      11,    14
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    30,    31,    31,    32,    32,    33,    33,    34,    33,
-      33,    35,    35,    35,    35,    37,    36,    38,    36,    39,
-      36,    40,    36,    41,    36,    36,    36,    42,    42,    42,
-      42
+       0,    30,    31,    31,    32,    32,    33,    34,    33,    35,
+      33,    36,    33,    33,    37,    38,    37,    39,    37,    40,
+      37,    41,    37,    42,    37,    44,    43,    45,    43,    46,
+      43,    47,    43,    48,    43,    43,    43,    49,    49,    49,
+      49
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     0,     3,     0,     1,     7,     0,     8,
-       3,     1,     3,     3,     3,     0,     4,     0,     4,     0,
+       0,     2,     3,     0,     3,     0,     1,     0,     8,     0,
+       8,     0,     4,     1,     1,     0,     4,     0,     4,     0,
+       4,     0,     5,     0,     5,     0,     4,     0,     4,     0,
        4,     0,     4,     0,     4,     3,     1,     1,     1,     2,
        2
 };
@@ -1164,151 +1191,211 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* R: START statements END  */
-#line 54 "parser.y"
+#line 56 "parser.y"
                         { printf("\nProgram compiled successfully\n"); }
-#line 1170 "parser.tab.c"
+#line 1197 "parser.tab.c"
     break;
 
-  case 7: /* line: IF '(' condition ')' THEN statements EIF  */
-#line 63 "parser.y"
-                                             {  }
-#line 1176 "parser.tab.c"
-    break;
-
-  case 8: /* $@1: %empty  */
-#line 64 "parser.y"
-                               { genWhile(); }
-#line 1182 "parser.tab.c"
-    break;
-
-  case 9: /* line: WHILE '(' condition ')' DO $@1 statements EWHILE  */
-#line 64 "parser.y"
-                                                                 { genEWhile(); }
-#line 1188 "parser.tab.c"
-    break;
-
-  case 10: /* line: ID '=' expr  */
+  case 7: /* $@1: %empty  */
 #line 65 "parser.y"
-                {}
-#line 1194 "parser.tab.c"
+                              {  }
+#line 1203 "parser.tab.c"
     break;
 
-  case 11: /* condition: expr  */
-#line 68 "parser.y"
-                { }
-#line 1200 "parser.tab.c"
+  case 8: /* line: IF '(' condition ')' THEN $@1 statements EIF  */
+#line 65 "parser.y"
+                                                  {  }
+#line 1209 "parser.tab.c"
     break;
 
-  case 12: /* condition: expr EQUALITY expr  */
-#line 69 "parser.y"
-                       {  }
-#line 1206 "parser.tab.c"
+  case 9: /* $@2: %empty  */
+#line 66 "parser.y"
+                               { genWhile(); }
+#line 1215 "parser.tab.c"
     break;
 
-  case 13: /* condition: expr '<' expr  */
-#line 70 "parser.y"
-                  {  }
-#line 1212 "parser.tab.c"
+  case 10: /* line: WHILE '(' condition ')' DO $@2 statements EWHILE  */
+#line 66 "parser.y"
+                                                                 { genEWhile(); }
+#line 1221 "parser.tab.c"
     break;
 
-  case 14: /* condition: expr '>' expr  */
-#line 71 "parser.y"
-                  {  }
-#line 1218 "parser.tab.c"
-    break;
-
-  case 15: /* $@2: %empty  */
-#line 75 "parser.y"
-             { etype x = {OPR_T, "+"}; push(x); }
-#line 1224 "parser.tab.c"
-    break;
-
-  case 16: /* expr: expr '+' $@2 expr  */
-#line 75 "parser.y"
-                                                       { genBinary(); }
-#line 1230 "parser.tab.c"
-    break;
-
-  case 17: /* $@3: %empty  */
-#line 76 "parser.y"
-             { etype x = {OPR_T, "-"}; push(x); }
-#line 1236 "parser.tab.c"
-    break;
-
-  case 18: /* expr: expr '-' $@3 expr  */
-#line 76 "parser.y"
-                                                       { genBinary(); }
-#line 1242 "parser.tab.c"
-    break;
-
-  case 19: /* $@4: %empty  */
-#line 77 "parser.y"
-             { etype x = {OPR_T, "*"}; push(x); }
-#line 1248 "parser.tab.c"
-    break;
-
-  case 20: /* expr: expr '*' $@4 expr  */
-#line 77 "parser.y"
-                                                       { genBinary(); }
-#line 1254 "parser.tab.c"
-    break;
-
-  case 21: /* $@5: %empty  */
-#line 78 "parser.y"
-             { etype x = {OPR_T, "/"}; push(x); }
-#line 1260 "parser.tab.c"
-    break;
-
-  case 22: /* expr: expr '/' $@5 expr  */
-#line 78 "parser.y"
-                                                       { genBinary(); }
-#line 1266 "parser.tab.c"
-    break;
-
-  case 23: /* $@6: %empty  */
-#line 79 "parser.y"
-             { etype x = {OPR_T, "%"}; push(x); }
-#line 1272 "parser.tab.c"
-    break;
-
-  case 24: /* expr: expr '%' $@6 expr  */
-#line 79 "parser.y"
-                                                       { genBinary(); }
-#line 1278 "parser.tab.c"
-    break;
-
-  case 25: /* expr: '(' expr ')'  */
-#line 80 "parser.y"
-                 {  }
-#line 1284 "parser.tab.c"
-    break;
-
-  case 27: /* term: NUMBER  */
-#line 84 "parser.y"
-             { cpush(NUM_T); }
-#line 1290 "parser.tab.c"
-    break;
-
-  case 28: /* term: ID  */
-#line 85 "parser.y"
+  case 11: /* $@3: %empty  */
+#line 67 "parser.y"
        { cpush(VAR_T); }
-#line 1296 "parser.tab.c"
+#line 1227 "parser.tab.c"
     break;
 
-  case 29: /* term: '-' expr  */
-#line 86 "parser.y"
+  case 12: /* line: ID $@3 '=' expr  */
+#line 67 "parser.y"
+                                  { genAssign(); }
+#line 1233 "parser.tab.c"
+    break;
+
+  case 13: /* line: error  */
+#line 68 "parser.y"
+          { yyerrok; yyclearin; }
+#line 1239 "parser.tab.c"
+    break;
+
+  case 14: /* condition: expr  */
+#line 71 "parser.y"
+                {  }
+#line 1245 "parser.tab.c"
+    break;
+
+  case 15: /* $@4: %empty  */
+#line 72 "parser.y"
+                  { etype x = { OPR_T, "==" }; push(x); }
+#line 1251 "parser.tab.c"
+    break;
+
+  case 16: /* condition: expr EQUALITY $@4 expr  */
+#line 72 "parser.y"
+                                                               { genCond(); }
+#line 1257 "parser.tab.c"
+    break;
+
+  case 17: /* $@5: %empty  */
+#line 73 "parser.y"
+             { etype x = { OPR_T, "<" }; push(x); }
+#line 1263 "parser.tab.c"
+    break;
+
+  case 18: /* condition: expr '<' $@5 expr  */
+#line 73 "parser.y"
+                                                         { genCond(); }
+#line 1269 "parser.tab.c"
+    break;
+
+  case 19: /* $@6: %empty  */
+#line 74 "parser.y"
+             { etype x = { OPR_T, ">" }; push(x); }
+#line 1275 "parser.tab.c"
+    break;
+
+  case 20: /* condition: expr '>' $@6 expr  */
+#line 74 "parser.y"
+                                                         { genCond(); }
+#line 1281 "parser.tab.c"
+    break;
+
+  case 21: /* $@7: %empty  */
+#line 75 "parser.y"
+                 { etype x = { OPR_T, "<=" }; push(x); }
+#line 1287 "parser.tab.c"
+    break;
+
+  case 22: /* condition: expr '<' '=' $@7 expr  */
+#line 75 "parser.y"
+                                                              { genCond(); }
+#line 1293 "parser.tab.c"
+    break;
+
+  case 23: /* $@8: %empty  */
+#line 76 "parser.y"
+                 { etype x = { OPR_T, ">=" }; push(x); }
+#line 1299 "parser.tab.c"
+    break;
+
+  case 24: /* condition: expr '>' '=' $@8 expr  */
+#line 76 "parser.y"
+                                                              { genCond(); }
+#line 1305 "parser.tab.c"
+    break;
+
+  case 25: /* $@9: %empty  */
+#line 80 "parser.y"
+             { etype x = {OPR_T, "+"}; push(x); }
+#line 1311 "parser.tab.c"
+    break;
+
+  case 26: /* expr: expr '+' $@9 expr  */
+#line 80 "parser.y"
+                                                       { genBinary(); }
+#line 1317 "parser.tab.c"
+    break;
+
+  case 27: /* $@10: %empty  */
+#line 81 "parser.y"
+             { etype x = {OPR_T, "-"}; push(x); }
+#line 1323 "parser.tab.c"
+    break;
+
+  case 28: /* expr: expr '-' $@10 expr  */
+#line 81 "parser.y"
+                                                       { genBinary(); }
+#line 1329 "parser.tab.c"
+    break;
+
+  case 29: /* $@11: %empty  */
+#line 82 "parser.y"
+             { etype x = {OPR_T, "*"}; push(x); }
+#line 1335 "parser.tab.c"
+    break;
+
+  case 30: /* expr: expr '*' $@11 expr  */
+#line 82 "parser.y"
+                                                       { genBinary(); }
+#line 1341 "parser.tab.c"
+    break;
+
+  case 31: /* $@12: %empty  */
+#line 83 "parser.y"
+             { etype x = {OPR_T, "/"}; push(x); }
+#line 1347 "parser.tab.c"
+    break;
+
+  case 32: /* expr: expr '/' $@12 expr  */
+#line 83 "parser.y"
+                                                       { genBinary(); }
+#line 1353 "parser.tab.c"
+    break;
+
+  case 33: /* $@13: %empty  */
+#line 84 "parser.y"
+             { etype x = {OPR_T, "%"}; push(x); }
+#line 1359 "parser.tab.c"
+    break;
+
+  case 34: /* expr: expr '%' $@13 expr  */
+#line 84 "parser.y"
+                                                       { genBinary(); }
+#line 1365 "parser.tab.c"
+    break;
+
+  case 35: /* expr: '(' expr ')'  */
+#line 85 "parser.y"
+                 {  }
+#line 1371 "parser.tab.c"
+    break;
+
+  case 37: /* term: NUMBER  */
+#line 89 "parser.y"
+             { cpush(NUM_T); }
+#line 1377 "parser.tab.c"
+    break;
+
+  case 38: /* term: ID  */
+#line 90 "parser.y"
+       { cpush(VAR_T); }
+#line 1383 "parser.tab.c"
+    break;
+
+  case 39: /* term: '-' expr  */
+#line 91 "parser.y"
              { etype x = {OPR_T, "-"}; push(x); genUnary(); }
-#line 1302 "parser.tab.c"
+#line 1389 "parser.tab.c"
     break;
 
-  case 30: /* term: '+' expr  */
-#line 87 "parser.y"
+  case 40: /* term: '+' expr  */
+#line 92 "parser.y"
              { etype x = {OPR_T, "+"}; push(x); genUnary(); }
-#line 1308 "parser.tab.c"
+#line 1395 "parser.tab.c"
     break;
 
 
-#line 1312 "parser.tab.c"
+#line 1399 "parser.tab.c"
 
       default: break;
     }
@@ -1501,7 +1588,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 90 "parser.y"
+#line 95 "parser.y"
 
 
 void cpush(enum dattype T) {
@@ -1525,7 +1612,7 @@ etype genUnary() {
   char* s = (char *) malloc(4);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
-  printf("%c%s = %c%s%c%s\n", disptype[z.type], z.value, disptype[x.type], x.value, disptype[y.type], y.value);
+  printf("%s %c%s = %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[x.type], x.value, disptype[y.type], y.value);
   push(z);
   return z;
 }
@@ -1537,23 +1624,47 @@ etype genBinary() {
   char* s = (char *) malloc(4);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
-  printf("%c%s = %c%s%c%s%c%s\n", disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
+  printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
   push(z);
   return z;
 }
 
 void genWhile() {
-  printf("L_%d:\n", loop);
   etype a = pop();
-  printf("t%d = not %c%s\n", temp, disptype[a.type], a.value);
-  printf("if t%d jmp to End_L%d\n", temp, loop);
+  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
+  printf("%s L_%d:\n", indents, loop);
+  indents[ident] = '\t';
+  indents[ident+1] = 0;
+  ident++;
+  printf("%s IF t%d JMP TO End_L%d\n", indents, temp, loop);
   loop++;
+  temp++;
 }
 
 void genEWhile() {
   --loop;
-  printf("jmp to L_%d\n", loop);
-  printf("End_L%d:\n", loop);
+  printf("%s JMP TO L_%d\n", indents, loop);
+  indents[ident-1] = 0;
+  ident--;
+  printf("%s End_L%d:\n", indents, loop);
+  
+}
+
+void genCond() {
+  etype a = pop();
+  etype b = pop();
+  etype c = pop();
+  char* s = (char *) malloc(4);
+  snprintf(s, 4, "%d", temp++);
+  etype z = {TEMP_T, s};
+  printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
+  push(z);
+}
+
+void genAssign() {
+  etype x = pop();
+  etype y = pop();
+  printf("%s %c%s %c%s\n", indents, disptype[y.type], y.value, disptype[x.type], x.value);
 }
 
 int main(int argc, char *argv[]) {

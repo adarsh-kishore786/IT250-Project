@@ -13,7 +13,7 @@
   int condition;
 
   enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T };
-  char disptype[] = { ' ', ' ', 't', ' '};
+  char disptype[] = { 0, 0, 't', 0 };
 
   struct elem {
     enum dattype type;
@@ -23,18 +23,20 @@
   etype stack[100];
   int top = -1;
 
-  int loopStack[100];
-  int ltop = -1;
-
   int temp = 0, loop = 1;
+
+  char indents[100] = {0};
+  int ident = 0;
 
   void push(etype);
   void cpush(enum dattype);
   etype pop();
   etype genBinary();
   etype genUnary();
+  void genCond();
   void genWhile();
   void genEWhile();
+  void genAssign();
 
 %}
 
@@ -44,7 +46,7 @@
 %token TEXT NL
 %token NUMBER ID
 %token EQUALITY
-%nonassoc '<' '>'
+%nonassoc '<' '>' '='
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
@@ -60,15 +62,18 @@ statements: line DELIM statements
   ;
 
 line: expr
-  | IF '(' condition ')' THEN statements EIF {  }
+  | IF '(' condition ')' THEN {  } statements EIF {  }
   | WHILE '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
-  | ID '=' expr {}
+  | ID { cpush(VAR_T); } '=' expr { genAssign(); }
+  | error { yyerrok; yyclearin; }
   ;
 
-condition: expr { }
-  | expr EQUALITY expr {  }
-  | expr '<' expr {  }
-  | expr '>' expr {  }
+condition: expr {  }
+  | expr EQUALITY { etype x = { OPR_T, "==" }; push(x); } expr { genCond(); }
+  | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr { genCond(); }
+  | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr { genCond(); }
+  | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr { genCond(); }
+  | expr '>' '=' { etype x = { OPR_T, ">=" }; push(x); } expr { genCond(); }
   ;
 
 expr:
@@ -110,7 +115,7 @@ etype genUnary() {
   char* s = (char *) malloc(4);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
-  printf("%c%s = %c%s%c%s\n", disptype[z.type], z.value, disptype[x.type], x.value, disptype[y.type], y.value);
+  printf("%s %c%s = %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[x.type], x.value, disptype[y.type], y.value);
   push(z);
   return z;
 }
@@ -122,23 +127,47 @@ etype genBinary() {
   char* s = (char *) malloc(4);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
-  printf("%c%s = %c%s%c%s%c%s\n", disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
+  printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
   push(z);
   return z;
 }
 
 void genWhile() {
-  printf("L_%d:\n", loop);
   etype a = pop();
-  printf("t%d = not %c%s\n", temp, disptype[a.type], a.value);
-  printf("if t%d jmp to End_L%d\n", temp, loop);
+  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
+  printf("%s L_%d:\n", indents, loop);
+  indents[ident] = '\t';
+  indents[ident+1] = 0;
+  ident++;
+  printf("%s IF t%d JMP TO End_L%d\n", indents, temp, loop);
   loop++;
+  temp++;
 }
 
 void genEWhile() {
   --loop;
-  printf("jmp to L_%d\n", loop);
-  printf("End_L%d:\n", loop);
+  printf("%s JMP TO L_%d\n", indents, loop);
+  indents[ident-1] = 0;
+  ident--;
+  printf("%s End_L%d:\n", indents, loop);
+  
+}
+
+void genCond() {
+  etype a = pop();
+  etype b = pop();
+  etype c = pop();
+  char* s = (char *) malloc(4);
+  snprintf(s, 4, "%d", temp++);
+  etype z = {TEMP_T, s};
+  printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
+  push(z);
+}
+
+void genAssign() {
+  etype x = pop();
+  etype y = pop();
+  printf("%s %c%s %c%s\n", indents, disptype[y.type], y.value, disptype[x.type], x.value);
 }
 
 int main(int argc, char *argv[]) {

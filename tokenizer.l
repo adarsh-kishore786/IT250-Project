@@ -28,6 +28,7 @@ EWHILE return EWHILE;
 DO return DO;
 "==" return EQUALITY;
 [a-zA-Z][a-zA-Z0-9]* { yylval = yytext; return ID; }
+. return *yytext;
 %%
 
 int yywrap() {
