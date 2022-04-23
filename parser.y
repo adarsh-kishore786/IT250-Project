@@ -35,6 +35,7 @@
   etype genUnary();
   void genAssign();
   void genCond();
+  void genStartWhile();
   void genWhile();
   void genEWhile();
   void genIf();
@@ -68,6 +69,7 @@ line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
+  |
   ;
 
 condition: expr {  }
