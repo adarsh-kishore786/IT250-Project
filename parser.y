@@ -10,7 +10,7 @@
   void yyerror(const char*);
   extern FILE* yyin;
   char words[100];
-  int condition;
+  char compileSuccess = 1;
 
   enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T };
   char disptype[] = { 0, 0, 't', 0 };
@@ -39,6 +39,7 @@
   void genEWhile();
   void genIf();
   void genEIf();
+  void programEnded();
 %}
 
 %token DELIM
@@ -54,7 +55,7 @@
 
 %%
 
-R: START statements END { printf("\nProgram compiled successfully\n"); }
+R: START statements END { programEnded(); }
   |
   ;
 
@@ -70,11 +71,11 @@ line: expr
   ;
 
 condition: expr {  }
-  | expr EQUALITY { etype x = { OPR_T, "==" }; push(x); } expr { genCond(); }
-  | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr { genCond(); }
-  | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr { genCond(); }
-  | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr { genCond(); }
-  | expr '>' '=' { etype x = { OPR_T, ">=" }; push(x); } expr { genCond(); }
+  | expr EQUALITY { etype x = { OPR_T, "==" }; push(x); } expr {  }
+  | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr {  }
+  | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr {  }
+  | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr {  }
+  | expr '>' '=' { etype x = { OPR_T, ">=" }; push(x); } expr {  }
   ;
 
 expr:
@@ -134,12 +135,13 @@ etype genBinary() {
 }
 
 void genWhile() {
-  etype a = pop();
-  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
   printf("%s L_%d:\n", indents, loop);
   indents[ident] = '\t';
   indents[ident+1] = 0;
   ident++;
+  genCond();
+  etype a = pop();
+  printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
   printf("%s IF t%d JMP TO End_L_%d\n", indents, temp, loop);
   loop++;
   temp++;
@@ -154,6 +156,7 @@ void genEWhile() {
 }
 
 void genIf() {
+  genCond();
   etype a = pop();
   printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
   printf("%s IF t%d JMP TO End_I_%d:\n", indents, temp, decision);
@@ -197,5 +200,14 @@ int main(int argc, char *argv[]) {
 }
 
 void yyerror(const char* s) {
-  printf("%s\n", s);
+  printf("-----> %s\n", s);
+  compileSuccess = 0;
+}
+
+void programEnded() {
+    if(compileSuccess)
+        printf("\nProgram compiled successfully\n");
+    else
+        printf("\nProgram compilation failed with error\n");
+    compileSuccess = 1;
 }
