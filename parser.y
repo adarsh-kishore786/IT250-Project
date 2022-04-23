@@ -66,7 +66,7 @@ statements: line DELIM statements
 
 line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
-  | WHILE '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
+  | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
   ;
 
@@ -134,11 +134,14 @@ etype genBinary() {
   return z;
 }
 
-void genWhile() {
+void genStartWhile() {
   printf("%s L_%d:\n", indents, loop);
   indents[ident] = '\t';
   indents[ident+1] = 0;
   ident++;
+}
+
+void genWhile() {
   genCond();
   etype a = pop();
   printf("%s t%d = not %c%s\n", indents, temp, disptype[a.type], a.value);
