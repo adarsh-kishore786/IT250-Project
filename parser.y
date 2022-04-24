@@ -56,7 +56,7 @@
 
 %%
 
-R: START statements END { programEnded(); }
+R: START statements END { programEnded(); } R
   |
   ;
 
@@ -73,7 +73,7 @@ line: expr
   ;
 
 condition: expr {  }
-  | expr EQUALITY { etype x = { OPR_T, "==" }; push(x); } expr {  }
+  | expr EQUALITY { etype x = { OPR_T, "EQ" }; push(x); } expr {  }
   | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr {  }
   | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr {  }
   | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr {  }
@@ -211,8 +211,8 @@ void yyerror(const char* s) {
 
 void programEnded() {
     if(compileSuccess)
-        printf("\nProgram compiled successfully\n");
+        printf("\nProgram compiled successfully\n\n");
     else
-        printf("\nProgram compilation failed with error\n");
+        printf("\nProgram compilation failed with error\n\n");
     compileSuccess = 1;
 }
