@@ -1484,19 +1484,19 @@ yyreduce:
 
   case 15:
 #line 74 "parser.y"
-               { printf("%s printf(\"%%s\\n\", %s);\n", indents, yylval); }
+               { printf("%s print %s\n", indents, yylval); }
 #line 1489 "parser.tab.c"
     break;
 
   case 16:
 #line 75 "parser.y"
-             { printf("%s printf(\"%%d\\n\", %s);\n", indents, yylval); }
+             { printf("%s print %s\n", indents, yylval); }
 #line 1495 "parser.tab.c"
     break;
 
   case 17:
 #line 76 "parser.y"
-           { printf("%s scanf(\"%%d\", &%s);\n", indents, yylval); }
+           { printf("%s input %s\n", indents, yylval); }
 #line 1501 "parser.tab.c"
     break;
 

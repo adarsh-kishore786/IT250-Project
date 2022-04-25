@@ -71,9 +71,9 @@ line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
-  | PRINT TEXT { printf("%s printf(\"%%s\\n\", %s);\n", indents, yylval); }
-  | PRINT ID { printf("%s printf(\"%%d\\n\", %s);\n", indents, yylval); }
-  | GET ID { printf("%s scanf(\"%%d\", &%s);\n", indents, yylval); }
+  | PRINT TEXT { printf("%s print %s\n", indents, yylval); }
+  | PRINT ID { printf("%s print %s\n", indents, yylval); }
+  | GET ID { printf("%s input %s\n", indents, yylval); }
   |
   ;
 
