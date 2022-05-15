@@ -53,6 +53,7 @@
   void genIf();
   void genEIf();
   void programEnded();
+  void printSymbols();
 %}
 
 %token DELIM
@@ -68,7 +69,7 @@
 
 %%
 
-R: START statements END { programEnded(); } R { YYACCEPT; }
+R: START statements END { programEnded(); printSymbols(); } R { YYACCEPT; }
   |
   ;
 
@@ -133,7 +134,9 @@ void addSym(dtyp T) {
 
 int checkType(dtyp a, dtyp b) {
   if(a == b) return 1;
-  yyerror("Types do not match");
+  char s[200];
+  sprintf(s, "Types %s and %s do not match", (a == NUM_T) ? "NUM" : "STRING", (b == NUM_T) ? "NUM" : "STRING");
+  yyerror(s);
   return 0;
 }
 
@@ -141,7 +144,9 @@ dtyp checkSym() {
   dtyp ans = isInSymTable(yylval);
   if(!ans) {
     // printf("symbol \" %s \" not declared\n", yylval);
-    yyerror("symbol not declared");
+    char s[200];
+    sprintf(s, "symbol \" %s \" not declared\n", yylval);
+    yyerror(s);
     return 0;
   }
   return ans;
@@ -251,6 +256,17 @@ void genAssign() {
   etype x = pop();
   etype y = pop();
   printf("%s %c%s = %c%s\n", indents, disptype[y.type], y.value, disptype[x.type], x.value);
+}
+
+void printSymbols() {
+    printf("\n\tSymbol Table\nData Type\tName\n");
+    for(int i = 0; i < numSym; i++) {
+        if(symbols[i].type == NUM_T)
+            printf("NUM      \t%s\n", symbols[i].value);
+        else
+            printf("STRING   \t%s\n", symbols[i].value);
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
