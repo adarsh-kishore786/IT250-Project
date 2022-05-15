@@ -12,8 +12,8 @@
   char words[100];
   char compileSuccess = 1;
 
-  enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T };
-  char disptype[] = { 0, 0, 't', 0 };
+  enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T, TEXT_T };
+  char disptype[] = { 0, 0, 't', 0, 0 };
 
   struct elem {
     enum dattype type;
@@ -33,6 +33,7 @@
 
   void addSym();
   int checkSym();
+  int isInSymTable();
   int checkEqualString();
   void push(etype);
   void cpush(enum dattype);
@@ -51,8 +52,8 @@
 
 %token DELIM
 %token START END
-%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET
-%token TEXT NL
+%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET LET
+%token TEXT T_NUM T_TEXT NL
 %token NUMBER ID
 %token EQUALITY
 %nonassoc '<' '>' '='
@@ -64,7 +65,7 @@
 
 %%
 
-R: START statements END { programEnded(); } R
+R: START statements END { programEnded(); } R { YYACCEPT; }
   |
   ;
 
@@ -76,11 +77,17 @@ statements: line DELIM statements
 line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
-  | ID { cpush(VAR_T); } '=' expr { genAssign(); }
+  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); } '=' assr
   | PRINT TEXT { printf("%s print %s\n", indents, yylval); }
   | PRINT ID { printf("%s print %s\n", indents, yylval); }
   | GET ID { printf("%s input %s\n", indents, yylval); }
+  | LET T_NUM ID { addSym(NUM_T); }
+  | LET T_TEXT ID { addSym(TEXT_T); }
   |
+  ;
+
+assr: expr { genAssign(); }
+  | TEXT { cpush(TEXT_T); genAssign(); }
   ;
 
 condition: expr {  }
@@ -102,14 +109,14 @@ expr:
   ;
 
 term: NUMBER { cpush(NUM_T); }
-  | ID { cpush(VAR_T); }
+  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); }
   | '-' expr { etype x = {OPR_T, "-"}; push(x); genUnary(); }
   | '+' expr { etype x = {OPR_T, "+"}; push(x); genUnary(); }
   ;
 
 %%
 
-void addSym() {
+void addSym(enum dattype T) {
   char* s = malloc(strlen(yylval) + 1);
   strcpy(s, yylval);
   etype x = {T, s};
@@ -131,11 +138,20 @@ int checkEqualString(char* a, char *b) {
   return 0;
 }
 
-int checkSym(etype x) {
+int checkSym() {
+  if(!isInSymTable(yylval)) {
+    // printf("symbol \" %s \" not declared\n", yylval);
+    yyerror("symbol not declared");
+    return 0;
+  }
+  return 1;
+}
+
+int isInSymTable(char* x) {
   for(int i = 0; i < numSym; i++)
-    if(symbols[i].type == x.type && checkEqualString(symbols[i].value, x.value))
-      return true;
-  return false;
+    if(checkEqualString(symbols[i].value, x))
+      return 1;
+  return 0;
 }
 
 void cpush(enum dattype T) {
