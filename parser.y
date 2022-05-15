@@ -51,7 +51,7 @@
 
 %token DELIM
 %token START END
-%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE
+%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET
 %token TEXT NL
 %token NUMBER ID
 %token EQUALITY
@@ -59,6 +59,8 @@
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
+
+%type <ival> expr term;
 
 %%
 
@@ -75,6 +77,9 @@ line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
   | ID { cpush(VAR_T); } '=' expr { genAssign(); }
+  | PRINT TEXT { printf("%s print %s\n", indents, yylval); }
+  | PRINT ID { printf("%s print %s\n", indents, yylval); }
+  | GET ID { printf("%s input %s\n", indents, yylval); }
   |
   ;
 

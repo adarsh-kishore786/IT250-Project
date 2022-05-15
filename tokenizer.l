@@ -1,6 +1,8 @@
+%option noinput nounput noyywrap
+
 %{
   #include <stdio.h>
-  
+
   #define YYSTYPE char*
   extern YYSTYPE yylval;
 
@@ -8,6 +10,7 @@
 
   extern char words[100];
 %}
+
 
 %%
 ; return DELIM;
@@ -26,11 +29,9 @@ ELSE return ELSE;
 WHILE return WHILE;
 EWHILE return EWHILE;
 DO return DO;
+GET return GET;
 "==" return EQUALITY;
 [a-zA-Z][a-zA-Z0-9]* { yylval = yytext; return ID; }
+\"[ \n\ta-zA-Z0-9!@#$%^&*()_+=-~`<>?:"{}]*\" { yylval = yytext; return TEXT; }
 . return *yytext;
 %%
-
-int yywrap() {
-  return 1;
-}

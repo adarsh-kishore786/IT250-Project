@@ -1,0 +1,14 @@
+START
+x = 2;
+
+WHILE (c < d) DO
+  a = a + 9;
+  SAY "How are you? 43254 IF";
+  SAY "HAHA!";
+  SAY a652443;
+  GET x;
+  GET pi;
+  x = x+1;
+EWHILE;
+
+END
