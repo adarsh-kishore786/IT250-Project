@@ -17,8 +17,8 @@
 START return START;
 END return END;
 SAY return PRINT;
-[0-9]+ { yylval = yytext; return NUMBER; }
-[\+\-\*/%()<>"] { yylval = yytext; return *yytext; }
+[0-9]+ { yylval = (char *)malloc(strlen(yytext) + 1); strcpy(yylval, yytext); return NUMBER; }
+[\+\-\*/%()<>"] { yylval = (char *)malloc(strlen(yytext) + 1); strcpy(yylval, yytext); return *yytext; }
 [ \n\t]
 "(.+)" return *yytext;
 IF return IF;
@@ -29,12 +29,14 @@ ELSE return ELSE;
 WHILE return WHILE;
 EWHILE return EWHILE;
 DO return DO;
+PRINT return PRINT;
 GET return GET;
+"=" return SEQ;
 "==" return EQUALITY;
 LET return LET;
 NUM return T_NUM;
 STR return T_TEXT;
-[a-zA-Z][a-zA-Z0-9]* { yylval = yytext; return ID; }
-\"[ \n\ta-zA-Z0-9!@#$%^&*()_+=-~`<>?:"{}]*\" { yylval = yytext; return TEXT; }
+[a-zA-Z][a-zA-Z0-9]* { yylval = (char *)malloc(strlen(yytext) + 1); strcpy(yylval, yytext); return ID; }
+\"[ \n\ta-zA-Z0-9!@#$%^&*()_+=-~`<>?:"{}]*\" { yylval = (char *)malloc(strlen(yytext) + 1); strcpy(yylval, yytext); return TEXT; }
 . return *yytext;
 %%
