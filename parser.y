@@ -12,14 +12,17 @@
   char words[100];
   char compileSuccess = 1;
 
-  enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T };
-  char disptype[] = { 0, 0, 't', 0 };
+  enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T, TEXT_T };
+  char disptype[] = { 0, 0, 't', 0, 0 };
 
   struct elem {
     enum dattype type;
     char *value;
   };
 
+  etype symbols[100];
+  int numSym = 0;
+  
   etype stack[100];
   int top = -1;
 
@@ -28,6 +31,10 @@
   char indents[100] = {0};
   int ident = 0;
 
+  void addSym();
+  int checkSym();
+  int isInSymTable();
+  int checkEqualString();
   void push(etype);
   void cpush(enum dattype);
   etype pop();
@@ -45,8 +52,8 @@
 
 %token DELIM
 %token START END
-%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET
-%token TEXT NL
+%token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET LET
+%token TEXT T_NUM T_TEXT NL
 %token NUMBER ID
 %token EQUALITY
 %nonassoc '<' '>' '='
@@ -58,7 +65,7 @@
 
 %%
 
-R: START statements END { programEnded(); }
+R: START statements END { programEnded(); } R { YYACCEPT; }
   |
   ;
 
@@ -70,15 +77,21 @@ statements: line DELIM statements
 line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
-  | ID { cpush(VAR_T); } '=' expr { genAssign(); }
+  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); } '=' assr
   | PRINT TEXT { printf("%s print %s\n", indents, yylval); }
   | PRINT ID { printf("%s print %s\n", indents, yylval); }
   | GET ID { printf("%s input %s\n", indents, yylval); }
+  | LET T_NUM ID { addSym(NUM_T); }
+  | LET T_TEXT ID { addSym(TEXT_T); }
   |
   ;
 
+assr: expr { genAssign(); }
+  | TEXT { cpush(TEXT_T); genAssign(); }
+  ;
+
 condition: expr {  }
-  | expr EQUALITY { etype x = { OPR_T, "==" }; push(x); } expr {  }
+  | expr EQUALITY { etype x = { OPR_T, "EQ" }; push(x); } expr {  }
   | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr {  }
   | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr {  }
   | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr {  }
@@ -96,12 +109,50 @@ expr:
   ;
 
 term: NUMBER { cpush(NUM_T); }
-  | ID { cpush(VAR_T); }
+  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); }
   | '-' expr { etype x = {OPR_T, "-"}; push(x); genUnary(); }
   | '+' expr { etype x = {OPR_T, "+"}; push(x); genUnary(); }
   ;
 
 %%
+
+void addSym(enum dattype T) {
+  char* s = malloc(strlen(yylval) + 1);
+  strcpy(s, yylval);
+  etype x = {T, s};
+  symbols[numSym] = x;
+  numSym++;
+}
+
+int checkEqualString(char* a, char *b) {
+  int j = 0;
+  while(*(a+j) != 0 && *(b+j) != 0) {
+    if(*(a+j) == *(b+j)) {
+      j++;
+      if(*(a+j) == 0)
+        return 1;
+    } else {
+      return 0;
+    }
+  }
+  return 0;
+}
+
+int checkSym() {
+  if(!isInSymTable(yylval)) {
+    // printf("symbol \" %s \" not declared\n", yylval);
+    yyerror("symbol not declared");
+    return 0;
+  }
+  return 1;
+}
+
+int isInSymTable(char* x) {
+  for(int i = 0; i < numSym; i++)
+    if(checkEqualString(symbols[i].value, x))
+      return 1;
+  return 0;
+}
 
 void cpush(enum dattype T) {
   char* s = malloc(strlen(yylval) + 1);
@@ -216,8 +267,8 @@ void yyerror(const char* s) {
 
 void programEnded() {
     if(compileSuccess)
-        printf("\nProgram compiled successfully\n");
+        printf("\nProgram compiled successfully\n\n");
     else
-        printf("\nProgram compilation failed with error\n");
+        printf("\nProgram compilation failed with error\n\n");
     compileSuccess = 1;
 }
