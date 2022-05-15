@@ -19,6 +19,9 @@
     enum dattype type;
     char *value;
   };
+
+  etype symbols[100];
+  int numSym = 0;
   
   etype stack[100];
   int top = -1;
@@ -28,6 +31,9 @@
   char indents[100] = {0};
   int ident = 0;
 
+  void addSym();
+  int checkSym();
+  int checkEqualString();
   void push(etype);
   void cpush(enum dattype);
   etype pop();
@@ -97,6 +103,35 @@ term: NUMBER { cpush(NUM_T); }
   ;
 
 %%
+
+void addSym() {
+  char* s = malloc(strlen(yylval) + 1);
+  strcpy(s, yylval);
+  etype x = {T, s};
+  symbols[numSym] = x;
+  numSym++;
+}
+
+int checkEqualString(char* a, char *b) {
+  int j = 0;
+  while(*(a+j) != 0 && *(b+j) != 0) {
+    if(*(a+j) == *(b+j)) {
+      j++;
+      if(*(a+j) == 0)
+        return 1;
+    } else {
+      return 0;
+    }
+  }
+  return 0;
+}
+
+int checkSym(etype x) {
+  for(int i = 0; i < numSym; i++)
+    if(symbols[i].type == x.type && checkEqualString(symbols[i].value, x.value))
+      return true;
+  return false;
+}
 
 void cpush(enum dattype T) {
   char* s = malloc(strlen(yylval) + 1);
