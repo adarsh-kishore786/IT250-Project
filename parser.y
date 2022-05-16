@@ -1,10 +1,12 @@
 %{
   #include <stdio.h>
+  #include <stdlib.h>
   #include <string.h>
 
   #define YYSTYPE char*
 
   typedef struct elem etype;
+  typedef enum dattype dtyp;
 
   int yylex();
   void yyerror(const char*);
@@ -12,13 +14,16 @@
   char words[100];
   char compileSuccess = 1;
 
-  enum dattype { VAR_T, NUM_T, TEMP_T, OPR_T, TEXT_T };
-  char disptype[] = { 0, 0, 't', 0, 0 };
+
+  enum dattype { NULL_TYPE, VAR_T, NUM_T, TEMP_T, OPR_T, TEXT_T };
+  char disptype[] = { 0, 0, 0, 't', 0, 0 };
 
   struct elem {
-    enum dattype type;
+    dtyp type;
     char *value;
   };
+
+  dtyp lht, rht;
 
   etype symbols[100];
   int numSym = 0;
@@ -32,11 +37,11 @@
   int ident = 0;
 
   void addSym();
-  int checkSym();
-  int isInSymTable();
-  int checkEqualString();
+  int checkType();
+  dtyp checkSym();
+  dtyp isInSymTable();
   void push(etype);
-  void cpush(enum dattype);
+  void cpush(dtyp);
   etype pop();
   etype genBinary();
   etype genUnary();
@@ -48,6 +53,7 @@
   void genIf();
   void genEIf();
   void programEnded();
+  void printSymbols();
 %}
 
 %token DELIM
@@ -55,17 +61,15 @@
 %token PRINT IF ELSE THEN ELIF EIF WHILE DO EWHILE GET LET
 %token TEXT T_NUM T_TEXT NL
 %token NUMBER ID
-%token EQUALITY
-%nonassoc '<' '>' '='
+%token EQUALITY SEQ
+%nonassoc '<' '>' SEQ
 %left '+' '-'
 %left '*' '/' '%'
 %left '(' ')'
 
-%type <ival> expr term;
-
 %%
 
-R: START statements END { programEnded(); } R { YYACCEPT; }
+R: START statements END { programEnded(); printSymbols(); } R { YYACCEPT; }
   |
   ;
 
@@ -77,25 +81,29 @@ statements: line DELIM statements
 line: expr
   | IF '(' condition ')' THEN { genIf(); } statements EIF { genEIf(); }
   | WHILE { genStartWhile(); } '(' condition ')' DO { genWhile(); } statements EWHILE { genEWhile(); }
-  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); } '=' assr
-  | PRINT TEXT { printf("%s print %s\n", indents, yylval); }
-  | PRINT ID { printf("%s print %s\n", indents, yylval); }
-  | GET ID { printf("%s input %s\n", indents, yylval); }
+  | ID { lht = checkSym(); if(!lht) YYERROR; else cpush(VAR_T); } SEQ assr
+  | PRINT prr
+  | GET ID { if(!checkSym()) YYERROR; else printf("%s input %s\n", indents, yylval); }
   | LET T_NUM ID { addSym(NUM_T); }
   | LET T_TEXT ID { addSym(TEXT_T); }
   |
   ;
 
-assr: expr { genAssign(); }
-  | TEXT { cpush(TEXT_T); genAssign(); }
+prr: TEXT { printf("%s print %s\n", indents, yylval); }
+  | ID { if(!checkSym()) YYERROR; else printf("%s print %s\n", indents, yylval); }
+  | NUMBER { printf("%s print %s\n", indents, yylval); }
+  ;
+
+assr: expr { rht = NUM_T; if(!checkType(lht, rht)) YYERROR; else genAssign(); }
+  | TEXT { rht = TEXT_T; if(!checkType(lht, rht)) YYERROR; else { cpush(TEXT_T); genAssign(); } }
   ;
 
 condition: expr {  }
   | expr EQUALITY { etype x = { OPR_T, "EQ" }; push(x); } expr {  }
   | expr '<' { etype x = { OPR_T, "<" }; push(x); } expr {  }
   | expr '>' { etype x = { OPR_T, ">" }; push(x); } expr {  }
-  | expr '<' '=' { etype x = { OPR_T, "<=" }; push(x); } expr {  }
-  | expr '>' '=' { etype x = { OPR_T, ">=" }; push(x); } expr {  }
+  | expr '<' SEQ { etype x = { OPR_T, "<=" }; push(x); } expr {  }
+  | expr '>' SEQ { etype x = { OPR_T, ">=" }; push(x); } expr {  }
   ;
 
 expr:
@@ -109,53 +117,51 @@ expr:
   ;
 
 term: NUMBER { cpush(NUM_T); }
-  | ID { if(!checkSym()) YYERROR; cpush(VAR_T); }
+  | ID { if(!checkSym()) YYERROR; else cpush(VAR_T); }
   | '-' expr { etype x = {OPR_T, "-"}; push(x); genUnary(); }
   | '+' expr { etype x = {OPR_T, "+"}; push(x); genUnary(); }
   ;
 
 %%
 
-void addSym(enum dattype T) {
-  char* s = malloc(strlen(yylval) + 1);
+void addSym(dtyp T) {
+  char* s = calloc(strlen(yylval) + 1, 1);
   strcpy(s, yylval);
   etype x = {T, s};
   symbols[numSym] = x;
   numSym++;
 }
 
-int checkEqualString(char* a, char *b) {
-  int j = 0;
-  while(*(a+j) != 0 && *(b+j) != 0) {
-    if(*(a+j) == *(b+j)) {
-      j++;
-      if(*(a+j) == 0)
-        return 1;
-    } else {
-      return 0;
-    }
-  }
+int checkType(dtyp a, dtyp b) {
+  if(a == b) return 1;
+  char s[200];
+  sprintf(s, "Types %s and %s do not match", (a == NUM_T) ? "NUM" : "STRING", (b == NUM_T) ? "NUM" : "STRING");
+  yyerror(s);
   return 0;
 }
 
-int checkSym() {
-  if(!isInSymTable(yylval)) {
+dtyp checkSym() {
+  dtyp ans = isInSymTable(yylval);
+  if(!ans) {
     // printf("symbol \" %s \" not declared\n", yylval);
-    yyerror("symbol not declared");
+    char s[200];
+    sprintf(s, "symbol \" %s \" not declared\n", yylval);
+    yyerror(s);
     return 0;
   }
-  return 1;
+  return ans;
 }
 
-int isInSymTable(char* x) {
-  for(int i = 0; i < numSym; i++)
-    if(checkEqualString(symbols[i].value, x))
-      return 1;
+dtyp isInSymTable(char* x) {
+  for(int i = 0; i < numSym; i++) {
+    if(strcmp(symbols[i].value, x) == 0)
+      return symbols[i].type;
+  }
   return 0;
 }
 
-void cpush(enum dattype T) {
-  char* s = malloc(strlen(yylval) + 1);
+void cpush(dtyp T) {
+  char* s = calloc(strlen(yylval) + 1, 1);
   strcpy(s, yylval);
   etype x = {T, s};
   push(x);
@@ -172,7 +178,7 @@ etype pop() {
 etype genUnary() {
   etype x = pop();
   etype y = pop();
-  char* s = (char *) malloc(4);
+  char* s = (char *) calloc(4, 1);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
   printf("%s %c%s = %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[x.type], x.value, disptype[y.type], y.value);
@@ -184,7 +190,7 @@ etype genBinary() {
   etype a = pop();
   etype b = pop();
   etype c = pop();
-  char* s = (char *) malloc(4);
+  char* s = (char *) calloc(4, 1);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
   printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
@@ -239,7 +245,7 @@ void genCond() {
   etype a = pop();
   etype b = pop();
   etype c = pop();
-  char* s = (char *) malloc(4);
+  char* s = (char *) calloc(4, 1);
   snprintf(s, 4, "%d", temp++);
   etype z = {TEMP_T, s};
   printf("%s %c%s = %c%s %c%s %c%s\n", indents, disptype[z.type], z.value, disptype[c.type], c.value, disptype[b.type], b.value, disptype[a.type], a.value);
@@ -249,7 +255,18 @@ void genCond() {
 void genAssign() {
   etype x = pop();
   etype y = pop();
-  printf("%s %c%s %c%s\n", indents, disptype[y.type], y.value, disptype[x.type], x.value);
+  printf("%s %c%s = %c%s\n", indents, disptype[y.type], y.value, disptype[x.type], x.value);
+}
+
+void printSymbols() {
+    printf("\n\tSymbol Table\nData Type\tName\n");
+    for(int i = 0; i < numSym; i++) {
+        if(symbols[i].type == NUM_T)
+            printf("NUM      \t%s\n", symbols[i].value);
+        else
+            printf("STRING   \t%s\n", symbols[i].value);
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
