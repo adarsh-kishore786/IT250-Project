@@ -117,7 +117,7 @@ expr:
   ;
 
 term: NUMBER { cpush(NUM_T); }
-  | ID { if(!checkSym()) YYERROR; else cpush(VAR_T); }
+  | ID { dtyp x = checkSym(); if(!x || !checkType(x, NUM_T)) YYERROR; else cpush(VAR_T); }
   | '-' expr { etype x = {OPR_T, "-"}; push(x); genUnary(); }
   | '+' expr { etype x = {OPR_T, "+"}; push(x); genUnary(); }
   ;
